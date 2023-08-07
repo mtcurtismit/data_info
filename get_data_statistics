@@ -90,16 +90,41 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
         fps = [x[1] for x in list(subcat_data[subcat])]
         avg_lengths.append(np.array(lengths))
         avg_fps.append(np.array(fps))
+
+    
+    idx = 0
+    cat_lengths = []
+    cat_fps = []
+    for cat in cat_subcat_mapping.keys():
+        cat_lengths.append([])
+        cat_fps.append([])
+        for _ in range(len(cat_subcat_mapping[cat])):
+            cat_lengths[-1].extend(list(avg_lengths[idx]))
+            cat_fps[-1].extend(list(avg_fps[idx]))
+            idx += 1
+    cl2 = [len(x) for x in cat_lengths]
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
+    plt.barh(list(cat_subcat_mapping.keys()), cl2)
+    plt.title('Number of videos in each subcategory')
+    plt.subplot(1, 2, 2)
+    plt.boxplot(cat_lengths, labels=list(cat_subcat_mapping.keys()))
+    plt.boxplot(cat_fps, labels=list(cat_subcat_mapping.keys()))
+    plt.xticks(rotation=45, ha='right')
+    plt.title('Frame Count Distributions')
+    st.pyplot(fig)
+
+    time.sleep(20)
+
+    fig2 = plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
     plt.barh(list(subcat_data.keys()), subcat_lengths)
-    plt.title('Number of videos in each category')
+    plt.title('Number of videos in each subcategory')
     plt.subplot(1, 2, 2)
     plt.boxplot(avg_lengths, labels=list(subcat_data.keys()))
     plt.boxplot(avg_fps, labels=list(subcat_data.keys()))
     plt.xticks(rotation=45, ha='right')
     plt.title('Frame Count Distributions')
-    with plot_container.container():
-        plot_container.pyplot(fig)
+    st.pyplot(fig2)
 
 homepage()
