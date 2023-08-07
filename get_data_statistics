@@ -4,25 +4,35 @@ import os
 import matplotlib.pyplot as plt
 
 
-
-
 def homepage():
     '''
     This is the main function, automatically run when the file is downloaded as of now. Once you press the access data button, it starts accessing the specified table and visualizing it.
     '''
+
+    #This does all the things after buttons are pressed
     st.title('Safe City Machine Learning Model')
     p1 = os.path.join(os.getcwd(), 'SCB.jpg')
     ph = st.empty()
     set_background(p1)
     load_data = st.empty()
+    save_cont = st.empty()
     file_dir = ''
+    savepath = ''
     with load_data:
         bool3 = st.button('Load data')
+    save_bool = save_cont.checkbox('Save plots')
+    if save_bool:
+        savepath = save_cont.text_input('File name')
+    if savepath != '':
+        save_cont.empty()
     if bool3:
         file_dir = load_data.text_input('Type in the directory the files are in')
         if file_dir != '':
             load_data.empty()
-            data_from_directory(file_dir, load_data)
+            save_cont.empty()
+            data_from_directory(file_dir, load_data, savepath)
+
+    #This is responsible for the screen before clicking any buttons
     with ph.container():
         ph2 = st.empty()
         while file_dir == '':
@@ -31,11 +41,15 @@ def homepage():
             with ph2:
                 st.write(current_time)
             time.sleep(1)
+
+
 def get_base64(bin_file):
     import base64
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
+
+
 def set_background(png_file):
     bin_str = get_base64(png_file)
     page_bg_img = '''
@@ -47,7 +61,9 @@ def set_background(png_file):
     </style>
     ''' % bin_str
     st.markdown(page_bg_img, unsafe_allow_html=True)
-def data_from_directory(filepath, plot_container):
+
+
+def data_from_directory(filepath, plot_container, savepath):
     '''
     GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories
     '''
@@ -75,13 +91,19 @@ def data_from_directory(filepath, plot_container):
                 height = vid.get(CAP_PROP_FRAME_HEIGHT) # float `height`
                 subcategory_data[subcategory].append((length, fps, (width, height)))
     empty.caption('Plotting Data')
-    plot_directory_data(plot_container, subcategory_dict, subcategory_data)
+    fig1 = plot_directory_data(plot_container, subcategory_dict, subcategory_data, savepath)
     empty.empty()
-def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
+    return fig1
+
+
+def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepath):
     '''
-    Input is an st.empty object
+    Input is an st.empty object. Ouputs the graphs onto the local page, and saves into a local file if savepath is specified
     '''
     import numpy as np
+
+
+    #Prepares subcategory data
     subcat_lengths = [len(i) for i in list(subcat_data.values())]
     avg_lengths = []
     avg_fps = []
@@ -92,6 +114,7 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
         avg_fps.append(np.array(fps))
 
     
+    #Prepares category data
     idx = 0
     cat_lengths = []
     cat_fps = []
@@ -102,6 +125,9 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
             cat_lengths[-1].extend(list(avg_lengths[idx]))
             cat_fps[-1].extend(list(avg_fps[idx]))
             idx += 1
+
+    
+    #Plots categories
     cl2 = [len(x) for x in cat_lengths]
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
@@ -112,11 +138,13 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
     plt.boxplot(cat_fps, labels=list(cat_subcat_mapping.keys()))
     plt.xticks(rotation=45, ha='right')
     plt.title('Frame Count Distributions')
+    if savepath != '':
+        plt.savefig(f'{savepath}_cat')
     st.pyplot(fig)
 
-    time.sleep(20)
 
-    fig2 = plt.figure(figsize=(8, 8))
+    #Plots subcategories
+    fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.barh(list(subcat_data.keys()), subcat_lengths)
     plt.title('Number of videos in each subcategory')
@@ -125,6 +153,8 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
     plt.boxplot(avg_fps, labels=list(subcat_data.keys()))
     plt.xticks(rotation=45, ha='right')
     plt.title('Frame Count Distributions')
-    st.pyplot(fig2)
+    if savepath != ''
+        plt.savefig(f'{savepath}_subcat')
+    st.pyplot(fig)
 
 homepage()
