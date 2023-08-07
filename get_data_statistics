@@ -24,7 +24,7 @@ def homepage():
     if save_bool:
         savepath = save_cont.text_input('File name')
     if savepath != '':
-        save_cont.empty()
+        save_cont.caption(f'Plots being saved to {savepath}')
     if bool3:
         file_dir = load_data.text_input('Type in the directory the files are in')
         if file_dir != '':
@@ -153,7 +153,7 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     plt.boxplot(avg_fps, labels=list(subcat_data.keys()))
     plt.xticks(rotation=45, ha='right')
     plt.title('Frame Count Distributions')
-    if savepath != ''
+    if savepath != '':
         plt.savefig(f'{savepath}_subcat')
     st.pyplot(fig)
 
