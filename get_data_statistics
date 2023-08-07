@@ -1,0 +1,100 @@
+import streamlit as st
+import time
+import os
+import matplotlib.pyplot as plt
+
+
+
+
+def homepage():
+    '''
+    This is the main function, automatically run when the file is downloaded as of now. Once you press the access data button, it starts accessing the specified table and visualizing it.
+    '''
+    st.title('Safe City Machine Learning Model')
+    p1 = os.path.join(os.getcwd(), 'SCB.jpg')
+    ph = st.empty()
+    set_background(p1)
+    load_data = st.empty()
+    file_dir = ''
+    with load_data:
+        bool3 = st.button('Load data')
+    if bool3:
+        file_dir = load_data.text_input('Type in the directory the files are in')
+        if file_dir != '':
+            load_data.empty()
+            data_from_directory(file_dir, load_data)
+    with ph.container():
+        ph2 = st.empty()
+        while file_dir == '':
+            t = time.localtime()
+            current_time = time.strftime("%H:%M:%S", t)
+            with ph2:
+                st.write(current_time)
+            time.sleep(1)
+def get_base64(bin_file):
+    import base64
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+def set_background(png_file):
+    bin_str = get_base64(png_file)
+    page_bg_img = '''
+    <style>
+    .stApp {
+    background-image: url("data:image/png;base64,%s");
+    background-size: cover;
+    }
+    </style>
+    ''' % bin_str
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+def data_from_directory(filepath, plot_container):
+    '''
+    GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories
+    '''
+    import os
+    from cv2 import VideoCapture, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS
+    if not os.path.isdir(filepath):
+        AssertionError('Inputted filepath is not a directory')
+    subcategory_dict = {}
+    subcategory_data = {}
+    for cat in os.listdir(filepath):
+        cat_dir = os.path.join(filepath, cat)
+        subcategory_dict[cat] = (cat_dir, os.listdir(cat_dir))
+        for subcategory in os.listdir(cat_dir):
+            subcat_dir = os.path.join(cat_dir, subcategory)
+            subcategory_data[subcategory] = []
+            for video_file in os.listdir(subcat_dir):
+                video_file = os.path.join(subcat_dir, video_file)
+                vid = VideoCapture(video_file)
+
+                length = vid.get(CAP_PROP_FRAME_COUNT)
+                fps = vid.get(CAP_PROP_FPS)
+                width = vid.get(CAP_PROP_FRAME_WIDTH) # float `width`
+                height = vid.get(CAP_PROP_FRAME_HEIGHT) # float `height`
+                subcategory_data[subcategory].append((length, fps, (width, height)))
+    plot_directory_data(plot_container, subcategory_dict, subcategory_data)
+def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
+    '''
+    Input is an st.empty object
+    '''
+    import numpy as np
+    subcat_lengths = [len(i) for i in list(subcat_data.values())]
+    avg_lengths = []
+    avg_fps = []
+    for subcat in subcat_data:
+        lengths = [x[0] for x in list(subcat_data[subcat])]
+        fps = [x[1] for x in list(subcat_data[subcat])]
+        avg_lengths.append(np.array(lengths))
+        avg_fps.append(np.array(fps))
+    fig = plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.barh(list(subcat_data.keys()), subcat_lengths)
+    plt.title('Number of videos in each category')
+    plt.subplot(1, 2, 2)
+    plt.boxplot(avg_lengths, labels=list(subcat_data.keys()))
+    plt.xticks(rotation=45, ha='right')
+    plt.title('Frame Count Distributions')
+    with plot_container.container():
+        plot_container.pyplot(fig)
+
+homepage()
