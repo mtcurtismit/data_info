@@ -57,6 +57,8 @@ def data_from_directory(filepath, plot_container):
         AssertionError('Inputted filepath is not a directory')
     subcategory_dict = {}
     subcategory_data = {}
+    empty = st.empty()
+    empty.caption('Finding Video Information')
     for cat in os.listdir(filepath):
         cat_dir = os.path.join(filepath, cat)
         subcategory_dict[cat] = (cat_dir, os.listdir(cat_dir))
@@ -72,7 +74,9 @@ def data_from_directory(filepath, plot_container):
                 width = vid.get(CAP_PROP_FRAME_WIDTH) # float `width`
                 height = vid.get(CAP_PROP_FRAME_HEIGHT) # float `height`
                 subcategory_data[subcategory].append((length, fps, (width, height)))
+    empty.caption('Plotting Data')
     plot_directory_data(plot_container, subcategory_dict, subcategory_data)
+    empty.empty()
 def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
     '''
     Input is an st.empty object
@@ -92,6 +96,7 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data):
     plt.title('Number of videos in each category')
     plt.subplot(1, 2, 2)
     plt.boxplot(avg_lengths, labels=list(subcat_data.keys()))
+    plt.boxplot(avg_fps, labels=list(subcat_data.keys()))
     plt.xticks(rotation=45, ha='right')
     plt.title('Frame Count Distributions')
     with plot_container.container():
