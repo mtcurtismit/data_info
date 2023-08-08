@@ -6,6 +6,7 @@ import os
 from cv2 import VideoCapture, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS
 import base64
 import numpy as np
+import pandas as pd
 
 
 def homepage():
@@ -20,21 +21,29 @@ def homepage():
     set_background(p1)
     load_data = st.empty()
     save_cont = st.empty()
+    df_cont = st.empty()
     file_dir = ''
     savepath = ''
+    df_savepath = ''
     with load_data:
         bool3 = st.button('Load data')
     save_bool = save_cont.checkbox('Save plots')
+    df_bool = df_cont.checkbox('Save DataFrames')
     if save_bool:
         savepath = save_cont.text_input('File name')
     if savepath != '':
         save_cont.caption(f'Plots being saved to {savepath}')
+    if df_bool:
+        df_savepath = df_cont.text_input('File name')
+    if df_savepath != '':
+        df_cont.caption(f'DataFrames being saved to {df_savepath}')
     if bool3:
         file_dir = load_data.text_input('Type in the directory the files are in')
         if file_dir != '':
             load_data.empty()
             save_cont.empty()
-            data_from_directory(file_dir, load_data, savepath)
+            df_cont.empty()
+            data_from_directory(file_dir, load_data, savepath, df_savepath)
 
     #This is responsible for the screen before clicking any buttons
     with ph.container():
@@ -68,7 +77,7 @@ def set_background(png_file):
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
 
-def data_from_directory(filepath, plot_container, savepath):
+def data_from_directory(filepath, plot_container, savepath, df_savepath):
     '''
     GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories
     '''
@@ -85,6 +94,7 @@ def data_from_directory(filepath, plot_container, savepath):
         subcategory_dict[cat] = os.listdir(cat_dir)
         for subcategory in os.listdir(cat_dir):
             subcat_dir = os.path.join(cat_dir, subcategory)
+            #plot_container.progress(idx/len(os.listdir(filepath))+1/(len(os.listdir(filepath))+len(os.listdir(subcat_dir))), text='Videos retrieved')
             subcategory_data[f'{subcategory}-{cat}'] = []
             for video_file in os.listdir(subcat_dir):
                 video_file = os.path.join(subcat_dir, video_file)
@@ -99,12 +109,12 @@ def data_from_directory(filepath, plot_container, savepath):
     time.sleep(0.25)
     empty.caption('Plotting Data')
     plot_container.empty()
-    fig1 = plot_directory_data(plot_container, subcategory_dict, subcategory_data, savepath)
+    fig1 = plot_directory_data(plot_container, subcategory_dict, subcategory_data, savepath, df_savepath)
     empty.empty()
     return fig1
 
 
-def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepath):
+def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepath, df_savepath):
     '''
     Input is an st.empty object. Ouputs the graphs onto the local page, and saves into a local file if savepath is specified
     '''
@@ -137,8 +147,13 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.barh(list(cat_subcat_mapping.keys()), cl2)
+    #_, xmax, _, _ = plt.axis()
+    #text_keys = [x*xmax/len(subcat_data.keys()) for x in range(len(subcat_data.keys()))]
+    #for text_key, cl in zip(text_keys, cl2):
+    #    plt.text(text_key, cl, cl)
     plt.xlabel('Number of Videos')
     plt.tick_params(axis='y', labelsize=200/(len(list(subcat_data.keys()))))
+    plt.xscale('log')
     plt.title('Number of videos in each category')
     plt.subplot(1, 2, 2)
     plt.boxplot(cat_lengths, labels=list(cat_subcat_mapping.keys()))
@@ -150,13 +165,19 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     if savepath != '':
         plt.savefig(f'{savepath}_cat')
     st.pyplot(fig)
+    get_dataframe(list(cat_subcat_mapping.keys()), cat_lengths, f'{df_savepath}-cat')
 
 
     #Plots subcategories
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.barh(list(subcat_data.keys()), subcat_lengths)
+    #_, xmax, _, _ = plt.axis()
+    #text_keys = [x*xmax/len(subcat_data.keys()) for x in range(len(subcat_data.keys()))]
+    #for text_key, subcat_length in zip(text_keys, subcat_lengths):
+    #    plt.text(text_key, subcat_length, subcat_length)
     plt.xlabel('Number of Videos')
+    plt.xscale('log')
     plt.tick_params(axis='y', labelsize=200/(len(list(subcat_data.keys()))))
     plt.title('Number of videos in each subcategory')
     plt.subplot(1, 2, 2)
@@ -169,5 +190,24 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     if savepath != '':
         plt.savefig(f'{savepath}_subcat')
     st.pyplot(fig)
+    get_dataframe(list(subcat_data.keys()), avg_lengths, f'{df_savepath}-subcat')
+
+def get_dataframe(cat_names, cat_data, savepath):
+    # df = pd.DataFrame(columns=cat_names)
+    # for name, data in zip(cat_names, cat_data):
+    #     for point in data:
+    #         df.at[len(df[name]), name] = point
+    # st.write(df.describe(include='all'))
+    columns = ['Name', 'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max']
+    df = pd.DataFrame(columns=columns)
+    for name, data in zip(cat_names, cat_data):
+        series = pd.Series(data)
+        row = len(df)
+        df.at[row, 'Name'] = [name]
+        for column in columns[1:]:
+            df.at[row, column] = [series.describe()[column]]
+    if savepath[0] != '-':
+        df.to_csv(savepath)
+    st.write(df)
 
 homepage()
