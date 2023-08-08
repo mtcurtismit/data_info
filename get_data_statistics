@@ -77,10 +77,10 @@ def data_from_directory(filepath, plot_container, savepath):
     empty.caption('Finding Video Information')
     for cat in os.listdir(filepath):
         cat_dir = os.path.join(filepath, cat)
-        subcategory_dict[cat] = (cat_dir, os.listdir(cat_dir))
+        subcategory_dict[cat] = os.listdir(cat_dir)
         for subcategory in os.listdir(cat_dir):
             subcat_dir = os.path.join(cat_dir, subcategory)
-            subcategory_data[subcategory] = []
+            subcategory_data[f'{subcategory}-{cat}'] = []
             for video_file in os.listdir(subcat_dir):
                 video_file = os.path.join(subcat_dir, video_file)
                 vid = VideoCapture(video_file)
@@ -89,7 +89,7 @@ def data_from_directory(filepath, plot_container, savepath):
                 fps = vid.get(CAP_PROP_FPS)
                 width = vid.get(CAP_PROP_FRAME_WIDTH) # float `width`
                 height = vid.get(CAP_PROP_FRAME_HEIGHT) # float `height`
-                subcategory_data[subcategory].append((length, fps, (width, height)))
+                subcategory_data[f'{subcategory}-{cat}'].append((length, fps, (width, height)))
     empty.caption('Plotting Data')
     fig1 = plot_directory_data(plot_container, subcategory_dict, subcategory_data, savepath)
     empty.empty()
@@ -123,9 +123,8 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
         cat_fps.append([])
         for _ in range(len(cat_subcat_mapping[cat])):
             cat_lengths[-1].extend(list(avg_lengths[idx]))
-            cat_fps[-1].extend(list(avg_fps[idx]))
+            cat_fps[-1].extend(avg_fps[idx])
             idx += 1
-
     
     #Plots categories
     cl2 = [len(x) for x in cat_lengths]
