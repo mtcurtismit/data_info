@@ -27,14 +27,14 @@ def homepage():
     df_savepath = ''
     with load_data:
         bool3 = st.button('Load data')
-    save_bool = save_cont.checkbox('Save plots')
-    df_bool = df_cont.checkbox('Save DataFrames')
+    save_bool = save_cont.checkbox('Save plots', key='check1')
+    df_bool = df_cont.checkbox('Save DataFrames', key='check2')
     if save_bool:
-        savepath = save_cont.text_input('File name')
+        savepath = save_cont.text_input('File name', key='ti1')
     if savepath != '':
         save_cont.caption(f'Plots being saved to {savepath}')
     if df_bool:
-        df_savepath = df_cont.text_input('File name')
+        df_savepath = df_cont.text_input('File name', key='ti2')
     if df_savepath != '':
         df_cont.caption(f'DataFrames being saved to {df_savepath}')
     if bool3:
