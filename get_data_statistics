@@ -2,6 +2,10 @@ import streamlit as st
 import time
 import os
 import matplotlib.pyplot as plt
+import os
+from cv2 import VideoCapture, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS
+import base64
+import numpy as np
 
 
 def homepage():
@@ -44,13 +48,14 @@ def homepage():
 
 
 def get_base64(bin_file):
-    import base64
+    #This is for putting the background onto the app, this converts the image into the right form
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
 
 
 def set_background(png_file):
+    #This is actually puts the processed image as the background
     bin_str = get_base64(png_file)
     page_bg_img = '''
     <style>
@@ -67,15 +72,15 @@ def data_from_directory(filepath, plot_container, savepath):
     '''
     GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories
     '''
-    import os
-    from cv2 import VideoCapture, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS
     if not os.path.isdir(filepath):
         AssertionError('Inputted filepath is not a directory')
     subcategory_dict = {}
     subcategory_data = {}
     empty = st.empty()
     empty.caption('Finding Video Information')
-    for cat in os.listdir(filepath):
+    plot_container.progress(0/100, text='Videos retrieved')
+    for idx, cat in enumerate(os.listdir(filepath)):
+        plot_container.progress(idx/len(os.listdir(filepath)), text='Videos retrieved')
         cat_dir = os.path.join(filepath, cat)
         subcategory_dict[cat] = os.listdir(cat_dir)
         for subcategory in os.listdir(cat_dir):
@@ -90,7 +95,10 @@ def data_from_directory(filepath, plot_container, savepath):
                 width = vid.get(CAP_PROP_FRAME_WIDTH) # float `width`
                 height = vid.get(CAP_PROP_FRAME_HEIGHT) # float `height`
                 subcategory_data[f'{subcategory}-{cat}'].append((length, fps, (width, height)))
+    plot_container.progress(1/1, text='Completed')
+    time.sleep(0.25)
     empty.caption('Plotting Data')
+    plot_container.empty()
     fig1 = plot_directory_data(plot_container, subcategory_dict, subcategory_data, savepath)
     empty.empty()
     return fig1
@@ -100,8 +108,6 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     '''
     Input is an st.empty object. Ouputs the graphs onto the local page, and saves into a local file if savepath is specified
     '''
-    import numpy as np
-
 
     #Prepares subcategory data
     subcat_lengths = [len(i) for i in list(subcat_data.values())]
@@ -132,12 +138,14 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     plt.subplot(1, 2, 1)
     plt.barh(list(cat_subcat_mapping.keys()), cl2)
     plt.xlabel('Number of Videos')
+    plt.tick_params(axis='y', labelsize=200/(len(list(subcat_data.keys()))))
     plt.title('Number of videos in each category')
     plt.subplot(1, 2, 2)
     plt.boxplot(cat_lengths, labels=list(cat_subcat_mapping.keys()))
     plt.boxplot(cat_fps, labels=list(cat_subcat_mapping.keys()))
     plt.ylabel('Number of Frames')
     plt.xticks(rotation=45, ha='right')
+    plt.tick_params(axis='x', labelsize=100/(len(list(cat_subcat_mapping.keys()))))
     plt.title('Frame Count Distributions')
     if savepath != '':
         plt.savefig(f'{savepath}_cat')
@@ -149,11 +157,13 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     plt.subplot(1, 2, 1)
     plt.barh(list(subcat_data.keys()), subcat_lengths)
     plt.xlabel('Number of Videos')
+    plt.tick_params(axis='y', labelsize=200/(len(list(subcat_data.keys()))))
     plt.title('Number of videos in each subcategory')
     plt.subplot(1, 2, 2)
     plt.boxplot(avg_lengths, labels=list(subcat_data.keys()))
     plt.boxplot(avg_fps, labels=list(subcat_data.keys()))
     plt.xticks(rotation=45, ha='right')
+    plt.tick_params(axis='x', labelsize=100/(len(list(subcat_data.keys()))))
     plt.ylabel('Number of Frames')
     plt.title('Frame Count Distributions')
     if savepath != '':
