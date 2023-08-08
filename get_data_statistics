@@ -79,7 +79,7 @@ def set_background(png_file):
 
 def data_from_directory(filepath, plot_container, savepath, df_savepath):
     '''
-    GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories
+    GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories. Inputs also include a plot_container which is an st.empty() object, a savepath for plots, and a savepath for dataframes.
     '''
     if not os.path.isdir(filepath):
         AssertionError('Inputted filepath is not a directory')
@@ -94,7 +94,6 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
         subcategory_dict[cat] = os.listdir(cat_dir)
         for subcategory in os.listdir(cat_dir):
             subcat_dir = os.path.join(cat_dir, subcategory)
-            #plot_container.progress(idx/len(os.listdir(filepath))+1/(len(os.listdir(filepath))+len(os.listdir(subcat_dir))), text='Videos retrieved')
             subcategory_data[f'{subcategory}-{cat}'] = []
             for video_file in os.listdir(subcat_dir):
                 video_file = os.path.join(subcat_dir, video_file)
@@ -108,15 +107,15 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
     plot_container.progress(1/1, text='Completed')
     time.sleep(0.25)
     empty.caption('Plotting Data')
-    plot_container.empty()
-    fig1 = plot_directory_data(plot_container, subcategory_dict, subcategory_data, savepath, df_savepath)
+    fig1 = plot_directory_data(subcategory_dict, subcategory_data, savepath, df_savepath)
     empty.empty()
     return fig1
 
 
-def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepath, df_savepath):
+def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
     '''
-    Input is an st.empty object. Ouputs the graphs onto the local page, and saves into a local file if savepath is specified
+    Outputs the graphs onto the local page, and saves into a local file if savepath is specified
+    df_savepath is the savepath for the dataframes which are produced with a helper function. Cat-subcat mapping is a dictionary with the keys being categories and the values being lists of subcategories under each category. Subcat data is a dictionary with the subcategories (flattened) as keys, and list of data in the form of (length, fps, (width, height)).
     '''
 
     #Prepares subcategory data
@@ -147,10 +146,6 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.barh(list(cat_subcat_mapping.keys()), cl2)
-    #_, xmax, _, _ = plt.axis()
-    #text_keys = [x*xmax/len(subcat_data.keys()) for x in range(len(subcat_data.keys()))]
-    #for text_key, cl in zip(text_keys, cl2):
-    #    plt.text(text_key, cl, cl)
     plt.xlabel('Number of Videos')
     plt.tick_params(axis='y', labelsize=200/(len(list(subcat_data.keys()))))
     plt.xscale('log')
@@ -172,10 +167,6 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.barh(list(subcat_data.keys()), subcat_lengths)
-    #_, xmax, _, _ = plt.axis()
-    #text_keys = [x*xmax/len(subcat_data.keys()) for x in range(len(subcat_data.keys()))]
-    #for text_key, subcat_length in zip(text_keys, subcat_lengths):
-    #    plt.text(text_key, subcat_length, subcat_length)
     plt.xlabel('Number of Videos')
     plt.xscale('log')
     plt.tick_params(axis='y', labelsize=200/(len(list(subcat_data.keys()))))
@@ -193,11 +184,9 @@ def plot_directory_data(plot_container, cat_subcat_mapping, subcat_data, savepat
     get_dataframe(list(subcat_data.keys()), avg_lengths, f'{df_savepath}-subcat')
 
 def get_dataframe(cat_names, cat_data, savepath):
-    # df = pd.DataFrame(columns=cat_names)
-    # for name, data in zip(cat_names, cat_data):
-    #     for point in data:
-    #         df.at[len(df[name]), name] = point
-    # st.write(df.describe(include='all'))
+    '''
+    This function is called from within the plot directory function and takes an input of category names, and category data (which is a list of the frame number in each video of that category), and the savepath, which is the csv where the files will be saved. Also produces the dataframes into the UI.
+    '''
     columns = ['Name', 'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max']
     df = pd.DataFrame(columns=columns)
     for name, data in zip(cat_names, cat_data):
