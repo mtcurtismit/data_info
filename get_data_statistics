@@ -205,9 +205,32 @@ def get_dataframe(cat_names, cat_data, savepath):
         row = len(df)
         df.at[row, 'Name'] = [name]
         for column in columns[1:]:
-            df.at[row, column] = [series.describe()[column]]
+            df.at[row, column] = series.describe()[column]
     if savepath[0] != '-':
-        df.to_csv(savepath)
+        with open(savepath, 'a') as f:
+            df.to_csv(f)
+    totalframe = pd.DataFrame(columns=columns)
+    totalframe.at[1, 'Name'] = ['Total']
+    for column in columns[1:]:
+        if column == 'count':
+            totalframe.at[1, column] = df[column].sum()
+        if column == 'min':
+            totalframe.at[1, column] = df[column].min()
+        if column == 'max':
+            totalframe.at[1, column] = df[column].max()
+        else: totalframe.at[1, column] = df[column].sum()/len(df)
+    if savepath[0] != '-':
+        with open(savepath, 'a') as f:
+            totalframe.to_csv(f)
+    st.header('Information in Frame Counts')
+    st.write(totalframe)
+    st.write(df)
+    time_df = df[columns[2:]].apply(lambda x : x/24)
+    df.loc[:, columns[2:]] = time_df
+    if savepath[0] != '-':
+        with open(savepath, 'a') as f:
+            df.to_csv(f)
+    st.header('Information in Seconds')
     st.write(df)
 
 homepage()
