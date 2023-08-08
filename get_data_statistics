@@ -210,9 +210,9 @@ def get_dataframe(cat_names, cat_data, savepath):
     for column in columns[1:]:
         if column == 'count':
             totalframe.at[1, column] = df[column].sum()
-        if column == 'min':
+        elif column == 'min':
             totalframe.at[1, column] = df[column].min()
-        if column == 'max':
+        elif column == 'max':
             totalframe.at[1, column] = df[column].max()
         else: totalframe.at[1, column] = df[column].sum()/len(df)
 
