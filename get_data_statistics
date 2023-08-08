@@ -201,7 +201,7 @@ def get_dataframe(cat_names, cat_data, savepath):
 
 
     if savepath[0] != '-':
-        with open(savepath, 'a') as f:
+        with open(f'{savepath}-frame_numbers', 'a') as f:
             df.to_csv(f)
 
     #Totals the categorized dataframe
@@ -218,7 +218,7 @@ def get_dataframe(cat_names, cat_data, savepath):
 
 
     if savepath[0] != '-':
-        with open(savepath, 'a') as f:
+        with open(f'{savepath}-total_frame', 'a') as f:
             totalframe.to_csv(f)
 
     #Writes dataframes into UI
@@ -232,7 +232,7 @@ def get_dataframe(cat_names, cat_data, savepath):
 
 
     if savepath[0] != '-':
-        with open(savepath, 'a') as f:
+        with open(f'{savepath}-seconds', 'a') as f:
             df.to_csv(f)
     
 
