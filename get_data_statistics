@@ -106,6 +106,7 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
                 subcategory_data[f'{subcategory}-{cat}'].append((length, fps, (width, height)))
     plot_container.progress(1/1, text='Completed')
     time.sleep(0.25)
+    plot_container.empty()
     empty.caption('Plotting Data')
     fig1 = plot_directory_data(subcategory_dict, subcategory_data, savepath, df_savepath)
     empty.empty()
@@ -220,6 +221,11 @@ def get_dataframe(cat_names, cat_data, savepath):
         with open(savepath, 'a') as f:
             totalframe.to_csv(f)
 
+    #Writes dataframes into UI
+    st.header('Information in Frame Counts')
+    st.write(totalframe)
+    st.write(df)
+
     #Categorized dataframe into seconds based dataframe
     time_df = df[columns[2:]].apply(lambda x : x/24)
     df.loc[:, columns[2:]] = time_df
@@ -228,11 +234,8 @@ def get_dataframe(cat_names, cat_data, savepath):
     if savepath[0] != '-':
         with open(savepath, 'a') as f:
             df.to_csv(f)
+    
 
-    #Writes dataframes into UI
-    st.header('Information in Frame Counts')
-    st.write(totalframe)
-    st.write(df)
     st.header('Information in Seconds')
     st.write(df)
 
