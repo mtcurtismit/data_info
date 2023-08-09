@@ -216,14 +216,14 @@ def get_dataframe(cat_names, cat_data, savepath):
     for name, data in zip(cat_names, cat_data):
         series = pd.Series(data)
         row = len(df)
-        df.at[row, 'Name'] = [name]
+        df.at[row, 'Name'] = name
         for column in columns[1:]:
             df.at[row, column] = series.describe()[column]
 
 
     if savepath[0] != '-':
-        with open(f'{savepath}-frame_numbers', 'a') as f:
-            df.to_csv(f)
+        with open(f'{savepath}-frame_numbers.csv', 'a') as f:
+            df.to_csv(f, index=False)
 
     #Totals the categorized dataframe
     totalframe = pd.DataFrame(columns=columns)
@@ -240,7 +240,7 @@ def get_dataframe(cat_names, cat_data, savepath):
 
     if savepath[0] != '-':
         with open(f'{savepath}-total_frame.csv', 'a') as f:
-            totalframe.to_csv(f)
+            totalframe.to_csv(f, index=False)
 
     #Writes dataframes into UI
     st.header('Information in Frame Counts')
@@ -254,7 +254,7 @@ def get_dataframe(cat_names, cat_data, savepath):
 
     if savepath[0] != '-':
         with open(f'{savepath}-seconds.csv', 'a') as f:
-            df.to_csv(f)
+            df.to_csv(f, index=False)
     
 
     st.header('Information in Seconds')
