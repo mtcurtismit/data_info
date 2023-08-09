@@ -19,12 +19,16 @@ def homepage():
     p1 = os.path.join(os.getcwd(), 'SCB.jpg')
     ph = st.empty()
     set_background(p1)
+
+    #Initializes variables
     load_data = st.empty()
     save_cont = st.empty()
     df_cont = st.empty()
     file_dir = ''
     savepath = ''
     df_savepath = ''
+
+    #Buttons and actions
     with load_data:
         bool3 = st.button('Load data')
     save_bool = save_cont.checkbox('Save plots', key='check1')
@@ -81,6 +85,7 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
     '''
     GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories. Inputs also include a plot_container which is an st.empty() object, a savepath for plots, and a savepath for dataframes.
     '''
+    #Initializes variables
     if not os.path.isdir(filepath):
         AssertionError('Inputted filepath is not a directory')
     subcategory_dict = {}
@@ -88,6 +93,8 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
     empty = st.empty()
     empty.caption('Finding Video Information')
     plot_container.progress(0/100, text='Videos retrieved')
+
+    #Iterates through each directory and collects data
     for idx, cat in enumerate(os.listdir(filepath)):
         plot_container.progress(idx/len(os.listdir(filepath)), text='Videos retrieved')
         cat_dir = os.path.join(filepath, cat)
@@ -98,12 +105,13 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
             for video_file in os.listdir(subcat_dir):
                 video_file = os.path.join(subcat_dir, video_file)
                 vid = VideoCapture(video_file)
-
                 length = vid.get(CAP_PROP_FRAME_COUNT)
                 fps = vid.get(CAP_PROP_FPS)
                 width = vid.get(CAP_PROP_FRAME_WIDTH) # float `width`
                 height = vid.get(CAP_PROP_FRAME_HEIGHT) # float `height`
                 subcategory_data[f'{subcategory}-{cat}'].append((length, fps, (width, height)))
+
+    #Closes variables and starts plotting function
     plot_container.progress(1/1, text='Completed')
     time.sleep(0.25)
     plot_container.empty()
@@ -118,6 +126,12 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
     Outputs the graphs onto the local page, and saves into a local file if savepath is specified
     df_savepath is the savepath for the dataframes which are produced with a helper function. Cat-subcat mapping is a dictionary with the keys being categories and the values being lists of subcategories under each category. Subcat data is a dictionary with the subcategories (flattened) as keys, and list of data in the form of (length, fps, (width, height)).
     '''
+    #Initializes directory for saving plots
+    root_dir = 'data_from_UI'
+    try: os.chdir(root_dir)
+    except:
+        os.mkdir(root_dir)
+        os.chdir(root_dir)
 
     #Prepares subcategory data
     subcat_lengths = [len(i) for i in list(subcat_data.values())]
@@ -163,6 +177,11 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
     st.pyplot(fig)
     get_dataframe(list(cat_subcat_mapping.keys()), cat_lengths, f'{df_savepath}-cat')
 
+    #Pie chart for categories
+    fig2 = plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.pie(cl2, labels=list(cat_subcat_mapping.keys()))
+    st.pyplot(fig2)
 
     #Plots subcategories
     fig = plt.figure(figsize=(8, 8))
@@ -184,10 +203,20 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
     st.pyplot(fig)
     get_dataframe(list(subcat_data.keys()), avg_lengths, f'{df_savepath}-subcat')
 
+    #Pie chart for subcategories
+    fig2 = plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.pie(subcat_lengths, labels=list(subcat_data.keys()))
+    st.pyplot(fig2)
+
+    #Get back to old directory
+    if os.path.basename(os.getcwd()) == root_dir:
+        os.chdir('..')
 def get_dataframe(cat_names, cat_data, savepath):
     '''
     This function is called from within the plot directory function and takes an input of category names, and category data (which is a list of the frame number in each video of that category), and the savepath, which is the csv where the files will be saved. Also produces the dataframes into the UI.
     '''
+    #Initializes dataframe
     columns = ['Name', 'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max']
     df = pd.DataFrame(columns=columns)
 
@@ -218,7 +247,7 @@ def get_dataframe(cat_names, cat_data, savepath):
 
 
     if savepath[0] != '-':
-        with open(f'{savepath}-total_frame', 'a') as f:
+        with open(f'{savepath}-total_frame.csv', 'a') as f:
             totalframe.to_csv(f)
 
     #Writes dataframes into UI
@@ -232,11 +261,12 @@ def get_dataframe(cat_names, cat_data, savepath):
 
 
     if savepath[0] != '-':
-        with open(f'{savepath}-seconds', 'a') as f:
+        with open(f'{savepath}-seconds.csv', 'a') as f:
             df.to_csv(f)
     
 
     st.header('Information in Seconds')
     st.write(df)
+
 
 homepage()
