@@ -179,7 +179,7 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
     fig2 = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.pie(cl2)
-    plt.legend(labels=list(cat_subcat_mapping.keys()))
+    plt.legend(labels=list(cat_subcat_mapping.keys()), fontsize=100/(len(list(subcat_data.keys()))))
     if savepath != '':
         plt.savefig(f'{savepath}_cat_pie')
     st.pyplot(fig2)
@@ -208,7 +208,7 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
     fig2 = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
     plt.pie(subcat_lengths)
-    plt.legend(labels=list(subcat_data.keys()))
+    plt.legend(labels=list(subcat_data.keys()), fontsize=100/(len(list(subcat_data.keys()))))
     if savepath != '':
         plt.savefig(f'{savepath}_subcat_pie')
     st.pyplot(fig2)
