@@ -178,8 +178,9 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
     #Pie chart for categories
     fig2 = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
-    plt.pie(cl2)
+    plt.pie(cl2, labels=cl2)
     plt.legend(labels=list(cat_subcat_mapping.keys()), fontsize=100/(len(list(subcat_data.keys()))))
+    plt.title('Number of Videos in Each Category')
     if savepath != '':
         plt.savefig(f'{savepath}_cat_pie')
     st.pyplot(fig2)
@@ -207,8 +208,9 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
     #Pie chart for subcategories
     fig2 = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
-    plt.pie(subcat_lengths)
+    plt.pie(subcat_lengths, labels=subcat_lengths)
     plt.legend(labels=list(subcat_data.keys()), fontsize=100/(len(list(subcat_data.keys()))))
+    plt.title('Number of Videos in Each Subcategory')
     if savepath != '':
         plt.savefig(f'{savepath}_subcat_pie')
     st.pyplot(fig2)
