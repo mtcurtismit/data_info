@@ -175,6 +175,15 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
     get_dataframe(list(cat_subcat_mapping.keys()), cat_lengths, f'{savepath}-cat_dataframe')
 
 
+    #Pie chart for categories
+    fig2 = plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.pie(cl2)
+    plt.legend(labels=list(cat_subcat_mapping.keys()))
+    if savepath != '':
+        plt.savefig(f'{savepath}_cat_pie')
+    st.pyplot(fig2)
+
     #Plots subcategories
     fig = plt.figure(figsize=(8, 8))
     plt.subplot(1, 2, 1)
@@ -194,6 +203,15 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
         plt.savefig(f'{savepath}_subcat')
     st.pyplot(fig)
     get_dataframe(list(subcat_data.keys()), avg_lengths, f'{savepath}-subcat_dataframe')
+
+    #Pie chart for subcategories
+    fig2 = plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.pie(subcat_lengths)
+    plt.legend(labels=list(subcat_data.keys()))
+    if savepath != '':
+        plt.savefig(f'{savepath}_subcat_pie')
+    st.pyplot(fig2)
 
     #Get back to old directory
     if os.path.basename(os.getcwd()) == root_dir:
@@ -248,7 +266,6 @@ def get_dataframe(cat_names, cat_data, savepath):
     #Categorized dataframe into seconds based dataframe
     time_df = df[columns[2:]].apply(lambda x : x/24)
     df.loc[:, columns[2:]] = time_df
-
 
     if savepath[0] != '-':
         with open(f'{savepath}-seconds.csv', 'a') as f:
