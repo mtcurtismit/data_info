@@ -23,31 +23,23 @@ def homepage():
     #Initializes variables
     load_data = st.empty()
     save_cont = st.empty()
-    df_cont = st.empty()
     file_dir = ''
     savepath = ''
-    df_savepath = ''
 
     #Buttons and actions
     with load_data:
         bool3 = st.button('Load data')
     save_bool = save_cont.checkbox('Save plots', key='check1')
-    df_bool = df_cont.checkbox('Save DataFrames', key='check2')
     if save_bool:
         savepath = save_cont.text_input('File name', key='ti1')
     if savepath != '':
         save_cont.caption(f'Plots being saved to {savepath}')
-    if df_bool:
-        df_savepath = df_cont.text_input('File name', key='ti2')
-    if df_savepath != '':
-        df_cont.caption(f'DataFrames being saved to {df_savepath}')
     if bool3:
         file_dir = load_data.text_input('Type in the directory the files are in')
         if file_dir != '':
             load_data.empty()
             save_cont.empty()
-            df_cont.empty()
-            data_from_directory(file_dir, load_data, savepath, df_savepath)
+            data_from_directory(file_dir, load_data, savepath)
 
     #This is responsible for the screen before clicking any buttons
     with ph.container():
@@ -81,7 +73,7 @@ def set_background(png_file):
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
 
-def data_from_directory(filepath, plot_container, savepath, df_savepath):
+def data_from_directory(filepath, plot_container, savepath):
     '''
     GUI function with an input of a file path and an output of statistics about the data. Usable only with subcategories. Inputs also include a plot_container which is an st.empty() object, a savepath for plots, and a savepath for dataframes.
     '''
@@ -116,12 +108,12 @@ def data_from_directory(filepath, plot_container, savepath, df_savepath):
     time.sleep(0.25)
     plot_container.empty()
     empty.caption('Plotting Data')
-    fig1 = plot_directory_data(subcategory_dict, subcategory_data, savepath, df_savepath)
+    fig1 = plot_directory_data(subcategory_dict, subcategory_data, savepath)
     empty.empty()
     return fig1
 
 
-def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
+def plot_directory_data(cat_subcat_mapping, subcat_data, savepath):
     '''
     Outputs the graphs onto the local page, and saves into a local file if savepath is specified
     df_savepath is the savepath for the dataframes which are produced with a helper function. Cat-subcat mapping is a dictionary with the keys being categories and the values being lists of subcategories under each category. Subcat data is a dictionary with the subcategories (flattened) as keys, and list of data in the form of (length, fps, (width, height)).
@@ -175,7 +167,7 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
     if savepath != '':
         plt.savefig(f'{savepath}_cat')
     st.pyplot(fig)
-    get_dataframe(list(cat_subcat_mapping.keys()), cat_lengths, f'{df_savepath}-cat')
+    get_dataframe(list(cat_subcat_mapping.keys()), cat_lengths, f'{savepath}-cat_dataframe')
 
     #Pie chart for categories
     fig2 = plt.figure(figsize=(8, 8))
@@ -201,7 +193,7 @@ def plot_directory_data(cat_subcat_mapping, subcat_data, savepath, df_savepath):
     if savepath != '':
         plt.savefig(f'{savepath}_subcat')
     st.pyplot(fig)
-    get_dataframe(list(subcat_data.keys()), avg_lengths, f'{df_savepath}-subcat')
+    get_dataframe(list(subcat_data.keys()), avg_lengths, f'{savepath}-subcat_dataframe')
 
     #Pie chart for subcategories
     fig2 = plt.figure(figsize=(8, 8))
