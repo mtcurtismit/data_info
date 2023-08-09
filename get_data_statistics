@@ -7,6 +7,7 @@ from cv2 import VideoCapture, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_WIDTH, CAP_PR
 import base64
 import numpy as np
 import pandas as pd
+import datetime
 
 
 def homepage():
@@ -113,17 +114,21 @@ def data_from_directory(filepath, plot_container, savepath):
     return fig1
 
 
-def plot_directory_data(cat_subcat_mapping, subcat_data, savepath):
+def plot_directory_data(cat_subcat_mapping, subcat_data, root_dir):
     '''
     Outputs the graphs onto the local page, and saves into a local file if savepath is specified
     df_savepath is the savepath for the dataframes which are produced with a helper function. Cat-subcat mapping is a dictionary with the keys being categories and the values being lists of subcategories under each category. Subcat data is a dictionary with the subcategories (flattened) as keys, and list of data in the form of (length, fps, (width, height)).
     '''
     #Initializes directory for saving plots
-    root_dir = 'data_from_UI'
-    try: os.chdir(root_dir)
-    except:
-        os.mkdir(root_dir)
-        os.chdir(root_dir)
+    if root_dir != '':
+        try: os.chdir(root_dir)
+        except:
+            os.mkdir(root_dir)
+            os.chdir(root_dir)
+        savepath = str(datetime.datetime.today()).split()[0]
+        t = time.localtime()
+        savepath += time.strftime("%H_%M_%S", t)
+    else: savepath = ''
 
     #Prepares subcategory data
     subcat_lengths = [len(i) for i in list(subcat_data.values())]
